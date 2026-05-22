@@ -1,39 +1,102 @@
-**Welcome to your Base44 project** 
+# 💊 Sistema de Controle de Falta de Medicamentos
 
-**About**
+Projeto desenvolvido utilizando **React**, **HTML**, **CSS** e **JavaScript**, com foco em auxiliar no controle de medicamentos em falta dentro de farmácias. O sistema permite registrar produtos, acompanhar o status dos pedidos e organizar os medicamentos por categorias, facilitando o gerenciamento do estoque no dia a dia.
 
-View and Edit  your app on [Base44.com](http://Base44.com) 
+---
 
-This project contains everything you need to run your app locally.
+## 🚀 Funcionalidades
 
-**Edit the code in your local development environment**
+✅ Adicionar medicamentos em falta
+✅ Editar o status do medicamento
+✅ Remover medicamentos da lista
+✅ Visualizar data em que o item foi anotado
+✅ Visualizar data do pedido realizado
+✅ Organização por categorias
+✅ Interface simples e prática para uso diário
 
-Any change pushed to the repo will also be reflected in the Base44 Builder.
+---
 
-**Prerequisites:** 
+## 📌 Status disponíveis
 
-1. Clone the repository using the project's Git URL 
-2. Navigate to the project directory
-3. Install dependencies: `npm install`
-4. Create an `.env.local` file and set the right environment variables
+O sistema possui diferentes status para acompanhar cada medicamento:
 
+* 🔴 Em falta
+* 🟡 Pendente
+* 🟢 Disponível para pedir
+* 🔵 Pedido realizado
+
+---
+
+## 🗂️ Categorias
+
+Os medicamentos podem ser organizados nas seguintes categorias:
+
+* Ético
+* Genérico
+* Fraldas
+* Cosméticos
+
+---
+
+## 🛠️ Tecnologias utilizadas
+
+* ⚛️ React
+* 🌐 HTML5
+* 🎨 CSS3
+* 📜 JavaScript
+
+---
+
+## 🎯 Objetivo do Projeto
+
+Esse projeto foi desenvolvido com o objetivo de praticar e aprimorar conhecimentos em:
+
+* Manipulação de estados no React
+* Componentização
+* Organização de dados
+* Manipulação de listas
+* CRUD no front-end
+* Estilização com CSS
+* Lógica em JavaScript
+
+Além disso, o sistema foi pensado para resolver uma necessidade real do ambiente farmacêutico, tornando o controle de faltas mais rápido e organizado.
+
+---
+
+## ▶️ Como executar o projeto
+
+Clone o repositório:
+
+```bash
+git clone URL_DO_SEU_REPOSITORIO
 ```
-VITE_BASE44_APP_ID=your_app_id
-VITE_BASE44_APP_BASE_URL=your_backend_url
 
-e.g.
-VITE_BASE44_APP_ID=cbef744a8545c389ef439ea6
-VITE_BASE44_APP_BASE_URL=https://my-to-do-list-81bfaad7.base44.app
+Acesse a pasta:
+
+```bash
+cd nome-do-projeto
 ```
 
-Run the app: `npm run dev`
+Instale as dependências:
 
-**Publish your changes**
+```bash
+npm install
+```
 
-Open [Base44.com](http://Base44.com) and click on Publish.
+Execute o projeto:
 
-**Docs & Support**
+```bash
+npm run dev
+```
 
-Documentation: [https://docs.base44.com/Integrations/Using-GitHub](https://docs.base44.com/Integrations/Using-GitHub)
+---
 
-Support: [https://app.base44.com/support](https://app.base44.com/support)
+## 📄 Licença
+
+Este projeto está sob a licença MIT.
+
+---
+
+## 👨‍💻 Desenvolvedor
+
+Desenvolvido por **Davi Hudson** 🚀
