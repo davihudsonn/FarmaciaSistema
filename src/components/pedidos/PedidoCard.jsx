@@ -1,13 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  MoreHorizontal,
   CheckCircle2,
   Pencil,
   Trash2,
@@ -122,7 +115,7 @@ export default function PedidoCard({
             </div>
 
             {/* AÇÕES */}
-            <div className="flex items-center gap-1.5 shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
               {pedido.status !== 'pedido_realizado' && (
                 <Button
                   size="sm"
@@ -134,32 +127,25 @@ export default function PedidoCard({
                 </Button>
               )}
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onDelete(pedido)}
+                className="h-10 w-10 text-red-600 hover:bg-red-100"
+                title="Excluir pedido"
+              >
+                <Trash2 className="h-5 w-5" />
+              </Button>
 
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onEdit(pedido)}>
-                    <Pencil className="h-4 w-4 mr-2" />
-                    Editar
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem
-                    onClick={() => onDelete(pedido)}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Excluir
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => onEdit(pedido)}
+                className="h-10 w-10"
+                title="Editar pedido"
+              >
+                <Pencil className="h-5 w-5" />
+              </Button>
             </div>
 
           </div>
