@@ -1,8 +1,22 @@
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, ArrowUpDown, Calendar } from 'lucide-react';
+import { Search, ArrowUpDown, Calendar, Building2 } from 'lucide-react';
 
-export default function SearchAndFilters({ search, onSearchChange, statusFilter, onStatusChange, sortBy, onSortChange, dateFilter, onDateFilterChange, categoryFilter, onCategoryChange }) {
+export default function SearchAndFilters({
+  search,
+  onSearchChange,
+  statusFilter,
+  onStatusChange,
+  sortBy,
+  onSortChange,
+  dateFilter,
+  onDateFilterChange,
+  categoryFilter,
+  onCategoryChange,
+  laboratoryFilter,
+  onLaboratoryChange,
+  laboratoryOptions = [],
+}) {
   return (
     <div className="flex flex-col gap-3">
       <div className="relative">
@@ -66,6 +80,21 @@ export default function SearchAndFilters({ search, onSearchChange, statusFilter,
             <SelectItem value="fralda">🚼Fralda</SelectItem>
             <SelectItem value="cosmetico">💅Cosmético</SelectItem>
             <SelectItem value="etico">💊Ético</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={laboratoryFilter} onValueChange={onLaboratoryChange}>
+          <SelectTrigger className="w-[180px]">
+            <Building2 className="h-4 w-4 mr-1.5 text-muted-foreground" />
+            <SelectValue placeholder="Laboratório" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos os laboratórios</SelectItem>
+            {laboratoryOptions.map((laboratory) => (
+              <SelectItem key={laboratory} value={laboratory}>
+                {laboratory}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 

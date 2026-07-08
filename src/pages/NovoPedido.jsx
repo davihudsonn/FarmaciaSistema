@@ -16,6 +16,8 @@ export default function NovoPedido() {
           distribuidora: data.distribuidora,
           observacoes: data.observacoes,
           categoria: data.categoria,
+          laboratorio: data.laboratorio,
+          responsavel: data.responsavel,
           status: 'pendente',
           data_anotacao: new Date().toISOString(),
         },

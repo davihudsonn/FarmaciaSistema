@@ -36,6 +36,7 @@ export default function Pedidos() {
   const [editingPedido, setEditingPedido] = useState(null);
   const [deletingPedido, setDeletingPedido] = useState(null);
   const [categoryFilter, setCategoryFilter] = useState('todos');
+  const [laboratoryFilter, setLaboratoryFilter] = useState('todos');
 
   const queryClient = useQueryClient();
 
@@ -142,10 +143,15 @@ export default function Pedidos() {
     return true;
   };
 
+  const laboratoryOptions = Array.from(
+    new Set(pedidos.map((p) => p.laboratorio).filter(Boolean))
+  ).sort((a, b) => a.localeCompare(b));
+
   let filtered = pedidos.filter((p) => {
   const matchSearch =
     p.medicamento?.toLowerCase().includes(search.toLowerCase()) ||
-    p.distribuidora?.toLowerCase().includes(search.toLowerCase());
+    p.distribuidora?.toLowerCase().includes(search.toLowerCase()) ||
+    p.laboratorio?.toLowerCase().includes(search.toLowerCase());
 
   const matchStatus =
     statusFilter === 'todos' || p.status === statusFilter;
@@ -153,7 +159,10 @@ export default function Pedidos() {
   const matchCategory =
     categoryFilter === 'todos' || p.categoria === categoryFilter;
 
-  return matchSearch && matchStatus && matchCategory && matchesDateFilter(p);
+  const matchLaboratory =
+    laboratoryFilter === 'todos' || p.laboratorio === laboratoryFilter;
+
+  return matchSearch && matchStatus && matchCategory && matchLaboratory && matchesDateFilter(p);
 });
 
   filtered.sort((a, b) => {
@@ -230,6 +239,9 @@ export default function Pedidos() {
         onDateFilterChange={setDateFilter}
         categoryFilter={categoryFilter}
         onCategoryChange={setCategoryFilter}
+        laboratoryFilter={laboratoryFilter}
+        onLaboratoryChange={setLaboratoryFilter}
+        laboratoryOptions={laboratoryOptions}
       />
 
       {/* EMPTY */}

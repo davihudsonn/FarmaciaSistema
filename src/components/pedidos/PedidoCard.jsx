@@ -79,11 +79,23 @@ export default function PedidoCard({
                 </span>
               </div>
 
-              {/* DISTRIBUIDORA */}
-              <div className="flex items-center gap-2">
-                <Building2 className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">{pedido.distribuidora}</span>
-              </div>
+              {/* LABORATÓRIO */}
+              {pedido.laboratorio && (
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">Lab: {pedido.laboratorio}</span>
+                </div>
+              )}
+
+              {/* RESPONSÁVEL */}
+              {pedido.responsavel && (
+                <div className="flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shrink-0" />
+                  <span className="text-sm text-foreground font-medium">
+                    Anotado por: {pedido.responsavel}
+                  </span>
+                </div>
+              )}
 
               {/* DATA ANOTAÇÃO */}
               <div className="flex items-center gap-2">
@@ -91,7 +103,8 @@ export default function PedidoCard({
                 <span className="text-xs">
                   Anotado: {formatDate(pedido.data_anotacao)}
                 </span>
-              </div>
+              </div>    
+
 
               {/* DATA PEDIDO */}
               {pedido.data_pedido && (

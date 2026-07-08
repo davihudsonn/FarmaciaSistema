@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -8,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Save, X } from 'lucide-react';
 
 export default function PedidoForm({ pedido, onSubmit, onCancel, isSubmitting }) {
+  const [showLaboratorySuggestions, setShowLaboratorySuggestions] = useState(false);
+  const [showResponsibleSuggestions, setShowResponsibleSuggestions] = useState(false);
   const [form, setForm] = useState({
     medicamento: '',
     quantidade: '',
@@ -15,7 +19,53 @@ export default function PedidoForm({ pedido, onSubmit, onCancel, isSubmitting })
     observacoes: '',
     status: 'em_falta',
     categoria: '',
+    laboratorio: '',
+    responsavel: '',
   });
+
+  const { data: pedidos = [] } = useQuery({
+    queryKey: ['pedidos'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('pedidos')
+        .select('*')
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const laboratoriosDisponiveis = useMemo(() => {
+    const nomes = [
+      ...(form.laboratorio ? [form.laboratorio] : []),
+      ...pedidos.map((p) => p.laboratorio).filter(Boolean),
+    ];
+
+    return Array.from(new Set(nomes.map((nome) => nome.trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+  }, [form.laboratorio, pedidos]);
+
+  const laboratoriosFiltrados = useMemo(() => {
+    const termo = form.laboratorio.trim().toLowerCase();
+    if (!termo) return laboratoriosDisponiveis.slice(0, 6);
+    return laboratoriosDisponiveis.filter((laboratorio) => laboratorio.toLowerCase().includes(termo)).slice(0, 6);
+  }, [form.laboratorio, laboratoriosDisponiveis]);
+
+  const responsaveisDisponiveis = useMemo(() => {
+    const nomes = [
+      ...(form.responsavel ? [form.responsavel] : []),
+      ...pedidos.map((p) => p.responsavel).filter(Boolean),
+    ];
+
+    return Array.from(new Set(nomes.map((nome) => nome.trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+  }, [form.responsavel, pedidos]);
+
+  const responsaveisFiltrados = useMemo(() => {
+    const termo = form.responsavel.trim().toLowerCase();
+    if (!termo) return responsaveisDisponiveis.slice(0, 6);
+    return responsaveisDisponiveis.filter((responsavel) => responsavel.toLowerCase().includes(termo)).slice(0, 6);
+  }, [form.responsavel, responsaveisDisponiveis]);
 
   useEffect(() => {
     if (pedido) {
@@ -26,6 +76,8 @@ export default function PedidoForm({ pedido, onSubmit, onCancel, isSubmitting })
         observacoes: pedido.observacoes || '',
         status: pedido.status || 'em_falta',
         categoria: pedido.categoria || '',
+        laboratorio: pedido.laboratorio || '',
+        responsavel: pedido.responsavel || '',
       });
     }
   }, [pedido]);
@@ -76,6 +128,70 @@ export default function PedidoForm({ pedido, onSubmit, onCancel, isSubmitting })
                 value={form.distribuidora}
                 onChange={(e) => setForm({ ...form, distribuidora: e.target.value })}
               />
+            </div>
+            <div className="space-y-2 relative">
+              <Label htmlFor="laboratorio">Laboratório *</Label>
+              <Input
+                id="laboratorio"
+                placeholder="Selecione ou escreva o laboratório"
+                value={form.laboratorio}
+                onChange={(e) => {
+                  setForm({ ...form, laboratorio: e.target.value });
+                  setShowLaboratorySuggestions(true);
+                }}
+                onFocus={() => setShowLaboratorySuggestions(true)}
+                onBlur={() => setTimeout(() => setShowLaboratorySuggestions(false), 150)}
+                required
+              />
+              {showLaboratorySuggestions && laboratoriosFiltrados.length > 0 && (
+                <div className="absolute z-40 top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
+                  {laboratoriosFiltrados.map((laboratorio) => (
+                    <button
+                      key={laboratorio}
+                      type="button"
+                      onMouseDown={() => {
+                        setForm({ ...form, laboratorio });
+                        setShowLaboratorySuggestions(false);
+                      }}
+                      className="w-full px-3 py-2.5 hover:bg-muted/60 transition-colors text-left text-sm font-medium text-foreground border-b border-border/50 last:border-0"
+                    >
+                      {laboratorio}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="space-y-2 relative">
+              <Label htmlFor="responsavel">Responsável *</Label>
+              <Input
+                id="responsavel"
+                placeholder="Nome do funcionário"
+                value={form.responsavel}
+                onChange={(e) => {
+                  setForm({ ...form, responsavel: e.target.value });
+                  setShowResponsibleSuggestions(true);
+                }}
+                onFocus={() => setShowResponsibleSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowResponsibleSuggestions(false), 150)}
+                required
+              />
+              {showResponsibleSuggestions && responsaveisFiltrados.length > 0 && (
+                <div className="absolute z-40 top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
+                  {responsaveisFiltrados.map((responsavel) => (
+                    <button
+                      key={responsavel}
+                      type="button"
+                      onMouseDown={() => {
+                        setForm({ ...form, responsavel });
+                        setShowResponsibleSuggestions(false);
+                      }}
+                      className="w-full px-3 py-2.5 hover:bg-muted/60 transition-colors text-left text-sm font-medium text-foreground border-b border-border/50 last:border-0"
+                    >
+                      {responsavel}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>

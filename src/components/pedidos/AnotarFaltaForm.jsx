@@ -1,12 +1,12 @@
 import { useState, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/Client';
+import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Save, X, AlertTriangle, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Save, X, AlertTriangle, Clock, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -44,13 +44,25 @@ function DuplicateAlert({ pedido }) {
 }
 
 export default function AnotarFaltaForm({ onSubmit, onCancel, isSubmitting }) {
-  const [form, setForm] = useState({ medicamento: '', observacoes: '',categoria: '' });
+  const [form, setForm] = useState({ medicamento: '', observacoes: '', categoria: '', laboratorio: '', responsavel: '' });
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showLaboratorySuggestions, setShowLaboratorySuggestions] = useState(false);
+  const [showResponsibleSuggestions, setShowResponsibleSuggestions] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const inputRef = useRef(null);
 
   const { data: pedidos = [] } = useQuery({
     queryKey: ['pedidos'],
-    queryFn: () => base44.entities.Pedido.list('-created_date', 200),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('pedidos')
+        .select('*')
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
   });
 
   const duplicado = useMemo(() => {
@@ -67,22 +79,60 @@ export default function AnotarFaltaForm({ onSubmit, onCancel, isSubmitting }) {
       .slice(0, 6);
   }, [form.medicamento, pedidos]);
 
+  const laboratoriosDisponiveis = useMemo(() => {
+    const nomes = [
+      ...(form.laboratorio ? [form.laboratorio] : []),
+      ...pedidos.map((p) => p.laboratorio).filter(Boolean),
+    ];
+
+    return Array.from(new Set(nomes.map((nome) => nome.trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+  }, [form.laboratorio, pedidos]);
+
+  const laboratoriosFiltrados = useMemo(() => {
+    const termo = form.laboratorio.trim().toLowerCase();
+    if (!termo) return laboratoriosDisponiveis.slice(0, 6);
+    return laboratoriosDisponiveis.filter((laboratorio) => laboratorio.toLowerCase().includes(termo)).slice(0, 6);
+  }, [form.laboratorio, laboratoriosDisponiveis]);
+
+  const responsaveisDisponiveis = useMemo(() => {
+    const nomes = [
+      ...(form.responsavel ? [form.responsavel] : []),
+      ...pedidos.map((p) => p.responsavel).filter(Boolean),
+    ];
+
+    return Array.from(new Set(nomes.map((nome) => nome.trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+  }, [form.responsavel, pedidos]);
+
+  const responsaveisFiltrados = useMemo(() => {
+    const termo = form.responsavel.trim().toLowerCase();
+    if (!termo) return responsaveisDisponiveis.slice(0, 6);
+    return responsaveisDisponiveis.filter((responsavel) => responsavel.toLowerCase().includes(termo)).slice(0, 6);
+  }, [form.responsavel, responsaveisDisponiveis]);
+
   const handleSelectSuggestion = (nome) => {
     setForm({ ...form, medicamento: nome });
     setShowSuggestions(false);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit({
-      medicamento: form.medicamento,
-      observacoes: form.observacoes,
-      categoria: form.categoria,
-      status: 'pendente',
-      quantidade: 0,
-      distribuidora: '',
-      data_anotacao: new Date().toISOString(),
-    });
+    setIsSaving(true);
+
+    try {
+      await onSubmit({
+        medicamento: form.medicamento,
+        observacoes: form.observacoes,
+        categoria: form.categoria,
+        laboratorio: form.laboratorio,
+        responsavel: form.responsavel,
+        status: 'pendente',
+        quantidade: 0,
+        distribuidora: '',
+        data_anotacao: new Date().toISOString(),
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -92,20 +142,78 @@ export default function AnotarFaltaForm({ onSubmit, onCancel, isSubmitting }) {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2 relative">
-            <Label htmlFor="medicamento">Medicamento *</Label>
-            <Input
-              id="medicamento"
-              ref={inputRef}
-              placeholder="Nome do medicamento em falta"
-              value={form.medicamento}
-              onChange={(e) => { setForm({ ...form, medicamento: e.target.value }); setShowSuggestions(true); }}
-              onFocus={() => setShowSuggestions(true)}
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-              required
-              autoFocus
-              autoComplete="off"
-            />
+          <div className="space-y-4">
+            <div className="space-y-2 relative">
+              <Label htmlFor="medicamento">Medicamento *</Label>
+              <Input
+                id="medicamento"
+                ref={inputRef}
+                placeholder="Nome do medicamento em falta"
+                value={form.medicamento}
+                onChange={(e) => { setForm({ ...form, medicamento: e.target.value }); setShowSuggestions(true); }}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                required
+                autoFocus
+                autoComplete="off"
+              />
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
+                  {suggestions.map((p) => {
+                    const info = statusInfo[p.status] || statusInfo.em_falta;
+                    const Icon = info.icon;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onMouseDown={() => handleSelectSuggestion(p.medicamento)}
+                        className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-muted/60 transition-colors text-left border-b border-border/50 last:border-0"
+                      >
+                        <span className="text-sm font-medium text-foreground">{p.medicamento}</span>
+                        <span className={`flex items-center gap-1 text-xs font-semibold ${info.color}`}>
+                          <Icon className="h-3.5 w-3.5" />
+                          {info.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2 relative">
+              <Label htmlFor="laboratorio">Laboratório *</Label>
+              <Input
+                id="laboratorio"
+                placeholder="Selecione ou escreva o laboratório"
+                value={form.laboratorio}
+                onChange={(e) => {
+                  setForm({ ...form, laboratorio: e.target.value });
+                  setShowLaboratorySuggestions(true);
+                }}
+                onFocus={() => setShowLaboratorySuggestions(true)}
+                onBlur={() => setTimeout(() => setShowLaboratorySuggestions(false), 150)}
+                required
+              />
+              {showLaboratorySuggestions && laboratoriosFiltrados.length > 0 && (
+                <div className="absolute z-40 top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
+                  {laboratoriosFiltrados.map((laboratorio) => (
+                    <button
+                      key={laboratorio}
+                      type="button"
+                      onMouseDown={() => {
+                        setForm({ ...form, laboratorio });
+                        setShowLaboratorySuggestions(false);
+                      }}
+                      className="w-full px-3 py-2.5 hover:bg-muted/60 transition-colors text-left text-sm font-medium text-foreground border-b border-border/50 last:border-0"
+                    >
+                      {laboratorio}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="categoria">Categoria *</Label>
 
@@ -127,28 +235,39 @@ export default function AnotarFaltaForm({ onSubmit, onCancel, isSubmitting }) {
                 <option value="etico">💊Ético</option>
               </select>
             </div>
-            {showSuggestions && suggestions.length > 0 && (
-              <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
-                {suggestions.map((p) => {
-                  const info = statusInfo[p.status] || statusInfo.em_falta;
-                  const Icon = info.icon;
-                  return (
+
+            <div className="space-y-2 relative">
+              <Label htmlFor="responsavel">Responsável pela anotação *</Label>
+              <Input
+                id="responsavel"
+                placeholder="Nome do funcionário"
+                value={form.responsavel}
+                onChange={(e) => {
+                  setForm({ ...form, responsavel: e.target.value });
+                  setShowResponsibleSuggestions(true);
+                }}
+                onFocus={() => setShowResponsibleSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowResponsibleSuggestions(false), 150)}
+                required
+              />
+              {showResponsibleSuggestions && responsaveisFiltrados.length > 0 && (
+                <div className="absolute z-40 top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
+                  {responsaveisFiltrados.map((responsavel) => (
                     <button
-                      key={p.id}
+                      key={responsavel}
                       type="button"
-                      onMouseDown={() => handleSelectSuggestion(p.medicamento)}
-                      className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-muted/60 transition-colors text-left border-b border-border/50 last:border-0"
+                      onMouseDown={() => {
+                        setForm({ ...form, responsavel });
+                        setShowResponsibleSuggestions(false);
+                      }}
+                      className="w-full px-3 py-2.5 hover:bg-muted/60 transition-colors text-left text-sm font-medium text-foreground border-b border-border/50 last:border-0"
                     >
-                      <span className="text-sm font-medium text-foreground">{p.medicamento}</span>
-                      <span className={`flex items-center gap-1 text-xs font-semibold ${info.color}`}>
-                        <Icon className="h-3.5 w-3.5" />
-                        {info.label}
-                      </span>
+                      {responsavel}
                     </button>
-                  );
-                })}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {duplicado && <DuplicateAlert pedido={duplicado} />}
@@ -175,9 +294,18 @@ export default function AnotarFaltaForm({ onSubmit, onCancel, isSubmitting }) {
                 Cancelar
               </Button>
             )}
-            <Button type="submit" disabled={isSubmitting} className="bg-primary hover:bg-primary/90">
-              <Save className="h-4 w-4 mr-1.5" />
-              Anotar Falta
+            <Button type="submit" disabled={isSubmitting || isSaving} className="bg-primary hover:bg-primary/90">
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-1.5" />
+                  Anotar Falta
+                </>
+              )}
             </Button>
           </div>
         </form>

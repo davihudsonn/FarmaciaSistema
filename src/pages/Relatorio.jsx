@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, TrendingDown, PackageX, CheckCircle, AlertCircle } from 'lucide-react';
+import { TrendingUp, TrendingDown, PackageX, CheckCircle, AlertCircle, Download } from 'lucide-react';
 
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e'];
 
@@ -132,6 +132,46 @@ export default function Relatorio() {
     return Array.from(map.entries()).map(([date, quantidade]) => ({ date, quantidade }));
   }, [periodFilteredActive, period]);
 
+  const exportToExcel = () => {
+    const rows = (periodFiltered || []).map((pedido) => ({
+      medicamento: pedido.medicamento || '-',
+      categoria: pedido.categoria || '-',
+      laboratorio: pedido.laboratorio || '-',
+      responsavel: pedido.responsavel || '-',
+      status: pedido.status || '-',
+      quantidade: pedido.quantidade || 0,
+      distribuidora: pedido.distribuidora || '-',
+      observacoes: pedido.observacoes || '-',
+      data_anotacao: formatDate(pedido.data_anotacao),
+      data_pedido: formatDate(pedido.data_pedido),
+      status_excluido: pedido.deleted_at ? 'Excluído' : 'Ativo',
+    }));
+
+    const headers = Object.keys(rows[0] || {
+      medicamento: 'Medicamento',
+      categoria: 'Categoria',
+      laboratorio: 'Laboratório',
+      responsavel: 'Responsável',
+      status: 'Status',
+      quantidade: 'Quantidade',
+      distribuidora: 'Distribuidora',
+      observacoes: 'Observações',
+      data_anotacao: 'Data de anotação',
+      data_pedido: 'Data do pedido',
+      status_excluido: 'Status do registro',
+    });
+
+    const csvContent = [headers.join(';'), ...rows.map((row) => headers.map((header) => `"${String(row[header] ?? '').replace(/"/g, '""')}"`).join(';'))].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `relatorio-pedidos-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (isLoading) return <div className="space-y-4">{[...Array(6)].map((_, i) => (<Skeleton key={i} className="h-32 rounded-xl"/>))}</div>;
 
   /** @param {string} d */
@@ -144,13 +184,22 @@ export default function Relatorio() {
         <p className="text-muted-foreground text-sm mt-1">Análise completa de medicamentos anotados e excluídos</p>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <label className="text-sm">Período:</label>
         <select value={period} onChange={(e) => setPeriod(e.target.value)} className="p-2 border rounded">
           <option value="todos">Todos</option>
           <option value="semana">Última semana</option>
           <option value="mes">Último mês</option>
         </select>
+
+        <button
+          type="button"
+          onClick={exportToExcel}
+          className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+        >
+          <Download className="h-4 w-4" />
+          Exportar Excel
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
