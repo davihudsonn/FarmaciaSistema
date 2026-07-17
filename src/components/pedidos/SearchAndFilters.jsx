@@ -22,7 +22,7 @@ export default function SearchAndFilters({
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Buscar medicamento..."
+          placeholder="Buscar medicamento, EAN ou laboratório..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           className="pl-9"
@@ -38,6 +38,7 @@ export default function SearchAndFilters({
             <SelectItem value="em_falta">🔴 Em Falta</SelectItem>
             <SelectItem value="pendente">🟡 Pendente</SelectItem>
             <SelectItem value="pedido_realizado">🟢 Realizados</SelectItem>
+            <SelectItem value="pedido_chegou">🔵 Pedido Chegou</SelectItem>
           </SelectContent>
         </Select>
 

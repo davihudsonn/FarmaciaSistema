@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, TrendingDown, PackageX, CheckCircle, AlertCircle, Download } from 'lucide-react';
+import { PackageCheck, CheckCircle, AlertCircle, Download } from 'lucide-react';
 
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e'];
 
@@ -18,7 +18,7 @@ export default function Relatorio() {
     queryFn: async () => {
       const { data } = await supabase
         .from('pedidos')
-        .select('id, medicamento, created_at, data_anotacao, data_pedido, deleted_at, status, categoria')
+        .select('id, medicamento, created_at, data_anotacao, data_pedido, data_chegada, deleted_at, status, categoria, laboratorio, responsavel, quantidade, distribuidora, observacoes, ean')
         .order('created_at', { ascending: false });
       return data || [];
     },
@@ -50,38 +50,51 @@ export default function Relatorio() {
     [filtered, period],
   );
 
-  const periodFilteredDeleted = useMemo(
-    () => filtered.filter((p) => p.deleted_at && withinPeriod(p.deleted_at)),
+  const periodFilteredArrived = useMemo(
+    () => filtered.filter((p) => p.status === 'pedido_chegou' && withinPeriod(p.data_chegada || p.data_pedido || p.data_anotacao || p.created_at)),
     [filtered, period],
   );
 
   const periodFiltered = useMemo(
-    () => [...periodFilteredActive, ...periodFilteredDeleted],
-    [periodFilteredActive, periodFilteredDeleted],
+    () => [...periodFilteredActive, ...periodFilteredArrived],
+    [periodFilteredActive, periodFilteredArrived],
   );
 
   const generalStats = useMemo(() => {
-    const total = periodFiltered.length;
-    const deleted = periodFilteredDeleted.length;
-    const active = periodFilteredActive.length;
-    const completed = periodFilteredActive.filter((p) => p.status === 'pedido_realizado').length;
-    return {
-      total,
-      deleted,
-      active,
-      completed,
-      deletionRate: total > 0 ? ((deleted / total) * 100).toFixed(1) : 0,
-    };
-  }, [periodFiltered, periodFilteredActive, periodFilteredDeleted]);
+  const total = periodFiltered.length;
 
-  const deletedMedicamentos = useMemo(() => {
+  const arrived = periodFilteredArrived.length;
+
+  const pending = periodFilteredActive.filter(
+    (p) => p.status === 'pendente'
+  ).length;
+
+  const completed = periodFilteredActive.filter(
+    (p) => p.status === 'pedido_realizado'
+  ).length;
+
+  const emFalta = periodFilteredActive.filter(
+    (p) => p.status === 'em_falta'
+  ).length;
+
+  return {
+    total,
+    arrived,
+    pending,
+    completed,
+    emFalta,
+    arrivalRate: total > 0 ? ((arrived / total) * 100).toFixed(1) : 0,
+  };
+}, [periodFiltered, periodFilteredActive, periodFilteredArrived]);
+
+  const arrivedMedicamentos = useMemo(() => {
     const map = new Map();
-    periodFilteredDeleted.forEach((p) => {
+    periodFilteredArrived.forEach((p) => {
       const med = p.medicamento || 'Sem medicamento';
       map.set(med, (map.get(med) || 0) + 1);
     });
     return Array.from(map.entries()).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 8);
-  }, [periodFilteredDeleted]);
+  }, [periodFilteredArrived]);
 
   const topMedicamentos = useMemo(() => {
     const map = new Map();
@@ -140,7 +153,6 @@ export default function Relatorio() {
       responsavel: pedido.responsavel || '-',
       status: pedido.status || '-',
       quantidade: pedido.quantidade || 0,
-      distribuidora: pedido.distribuidora || '-',
       observacoes: pedido.observacoes || '-',
       data_anotacao: formatDate(pedido.data_anotacao),
       data_pedido: formatDate(pedido.data_pedido),
@@ -181,7 +193,7 @@ export default function Relatorio() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Relatório</h1>
-        <p className="text-muted-foreground text-sm mt-1">Análise completa de medicamentos anotados e excluídos</p>
+        <p className="text-muted-foreground text-sm mt-1">Análise completa de medicamentos anotados, pedidos realizados e pedidos que chegaram</p>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -209,44 +221,44 @@ export default function Relatorio() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Pendentes</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold text-blue-600">{generalStats.active}</div><p className="text-xs text-muted-foreground mt-1">em aberto</p></CardContent>
+          <CardContent><div className="text-2xl font-bold text-blue-600">{generalStats.pending}</div><p className="text-xs text-muted-foreground mt-1">em aberto</p></CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Realizados</CardTitle></CardHeader>
           <CardContent><div className="text-2xl font-bold text-green-600">{generalStats.completed}</div><p className="text-xs text-muted-foreground mt-1">pedidos</p></CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Excluídos</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold text-red-600">{generalStats.deleted}</div><p className="text-xs text-muted-foreground mt-1">removidos</p></CardContent>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Chegaram</CardTitle></CardHeader>
+          <CardContent><div className="text-2xl font-bold text-emerald-600">{generalStats.arrived}</div><p className="text-xs text-muted-foreground mt-1">medicamentos</p></CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Taxa Exclusão</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold text-orange-600">{generalStats.deletionRate}%</div><p className="text-xs text-muted-foreground mt-1">do total</p></CardContent>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Taxa Chegada</CardTitle></CardHeader>
+          <CardContent><div className="text-2xl font-bold text-orange-600">{generalStats.arrivalRate}%</div><p className="text-xs text-muted-foreground mt-1">do total</p></CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="medicamentos-excluidos" className="space-y-4">
+      <Tabs defaultValue="medicamentos-chegados" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="medicamentos-excluidos">Excluídos</TabsTrigger>
+          <TabsTrigger value="medicamentos-chegados">Chegaram</TabsTrigger>
           <TabsTrigger value="medicamentos-ativos">Pendentes</TabsTrigger>
           <TabsTrigger value="status">Status</TabsTrigger>
           <TabsTrigger value="categorias">Categorias</TabsTrigger>
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="medicamentos-excluidos">
+        <TabsContent value="medicamentos-chegados">
           <Card>
-            <CardHeader><CardTitle>Medicamentos Mais Excluídos</CardTitle><CardDescription>Top 8 removidos</CardDescription></CardHeader>
+            <CardHeader><CardTitle>Medicamentos que chegaram</CardTitle><CardDescription>Top 8 recebidos</CardDescription></CardHeader>
             <CardContent>
-              {deletedMedicamentos.length > 0 ? deletedMedicamentos.map((item, idx) => (
+              {arrivedMedicamentos.length > 0 ? arrivedMedicamentos.map((item, idx) => (
                 <div key={idx} className="flex items-center justify-between py-2">
                   <div className="flex-1">
                     <p className="font-medium text-sm">{item.name}</p>
-                    <p className="text-xs text-muted-foreground">Última exclusão: {formatDate(filtered.find(p => p.medicamento === item.name && p.deleted_at)?.deleted_at)}</p>
+                    <p className="text-xs text-muted-foreground">Última chegada: {formatDate(filtered.find(p => p.medicamento === item.name && p.status === 'pedido_chegou')?.data_chegada || filtered.find(p => p.medicamento === item.name && p.status === 'pedido_chegou')?.data_pedido)}</p>
                   </div>
-                  <Badge variant="destructive" className="ml-2">{item.value}</Badge>
+                  <Badge variant="secondary" className="ml-2 bg-emerald-100 text-emerald-700">{item.value}</Badge>
                 </div>
-              )) : <p className="text-muted-foreground text-sm">Nenhum medicamento excluído</p>}
+              )) : <p className="text-muted-foreground text-sm">Nenhum medicamento chegou ainda</p>}
             </CardContent>
           </Card>
         </TabsContent>
