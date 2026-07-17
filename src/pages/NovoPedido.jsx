@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import AnotarFaltaForm from '@/components/pedidos/AnotarFaltaForm';
+import { buildObservacoesWithEan } from '@/components/pedidos/pedidoUtils';
 
 export default function NovoPedido() {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ export default function NovoPedido() {
           medicamento: data.medicamento,
           quantidade: data.quantidade,
           distribuidora: data.distribuidora,
-          observacoes: data.observacoes,
+          observacoes: buildObservacoesWithEan(data.observacoes, data.ean, data.ean_desconhecido),
           categoria: data.categoria,
           laboratorio: data.laboratorio,
           responsavel: data.responsavel,

@@ -77,9 +77,7 @@ export default function Pedidos() {
     mutationFn: async (id) => {
       const { error } = await supabase
         .from('pedidos')
-        .update({
-          deleted_at: new Date().toISOString(),
-        })
+        .delete()
         .eq('id', id);
 
       if (error) throw error;
@@ -101,10 +99,27 @@ export default function Pedidos() {
     });
   };
 
+  const handleMarkArrived = (pedido) => {
+    updateMutation.mutate({
+      id: pedido.id,
+      data: {
+        status: 'pedido_chegou',
+        data_chegada: new Date().toISOString(),
+      },
+    });
+  };
+
   const handleUpdate = (formData) => {
     updateMutation.mutate({
       id: editingPedido.id,
       data: formData,
+    });
+  };
+
+  const handleUpdateQuantity = (pedido, quantity) => {
+    updateMutation.mutate({
+      id: pedido.id,
+      data: { quantidade: quantity },
     });
   };
 
@@ -147,11 +162,31 @@ export default function Pedidos() {
     new Set(pedidos.map((p) => p.laboratorio).filter(Boolean))
   ).sort((a, b) => a.localeCompare(b));
 
+  const normalizedSearch = search.trim().toLowerCase();
+
+  const pedidosChegados = pedidos.filter((p) => p.status === 'pedido_chegou');
+
   let filtered = pedidos.filter((p) => {
+  // Esconde pedidos chegados somente quando o filtro for "Todos"
+  if (statusFilter === 'todos' && p.status === 'pedido_chegou') {
+    return false;
+  }
+
+  const searchableText = [
+    p.medicamento,
+    p.distribuidora,
+    p.laboratorio,
+    p.ean,
+    p.observacoes,
+    p.responsavel,
+    p.categoria,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
   const matchSearch =
-    p.medicamento?.toLowerCase().includes(search.toLowerCase()) ||
-    p.distribuidora?.toLowerCase().includes(search.toLowerCase()) ||
-    p.laboratorio?.toLowerCase().includes(search.toLowerCase());
+    normalizedSearch.length === 0 || searchableText.includes(normalizedSearch);
 
   const matchStatus =
     statusFilter === 'todos' || p.status === statusFilter;
@@ -162,7 +197,13 @@ export default function Pedidos() {
   const matchLaboratory =
     laboratoryFilter === 'todos' || p.laboratorio === laboratoryFilter;
 
-  return matchSearch && matchStatus && matchCategory && matchLaboratory && matchesDateFilter(p);
+  return (
+    matchSearch &&
+    matchStatus &&
+    matchCategory &&
+    matchLaboratory &&
+    matchesDateFilter(p)
+  );
 });
 
   filtered.sort((a, b) => {
@@ -260,10 +301,41 @@ export default function Pedidos() {
               pedido={pedido}
               index={i}
               onMarkDone={handleMarkDone}
+              onMarkArrived={handleMarkArrived}
               onEdit={setEditingPedido}
               onDelete={setDeletingPedido}
+              onUpdateQuantity={handleUpdateQuantity}
             />
           ))}
+        </div>
+      )}
+
+      {statusFilter === 'todos' && pedidosChegados.length > 0 && (
+        <div className="space-y-3 rounded-2xl border border-dashed border-border/70 bg-slate-50/60 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-semibold text-foreground">Pedidos chegados</h2>
+              <p className="text-xs text-muted-foreground">Mantidos no histórico para consulta e busca futura.</p>
+            </div>
+            <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700">
+              {pedidosChegados.length}
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            {pedidosChegados.map((pedido, i) => (
+              <PedidoCard
+                key={pedido.id}
+                pedido={pedido}
+                index={i}
+                onMarkDone={handleMarkDone}
+                onMarkArrived={handleMarkArrived}
+                onEdit={setEditingPedido}
+                onDelete={setDeletingPedido}
+                onUpdateQuantity={handleUpdateQuantity}
+              />
+            ))}
+          </div>
         </div>
       )}
 
@@ -291,7 +363,7 @@ export default function Pedidos() {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir pedido?</AlertDialogTitle>
             <AlertDialogDescription>
-              O pedido será removido da lista, mas será salvo no histórico para análise.
+              Esta ação excluirá o pedido permanentemente do sistema.
             </AlertDialogDescription>
           </AlertDialogHeader>
 

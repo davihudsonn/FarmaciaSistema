@@ -18,6 +18,11 @@ const statusConfig = {
     icon: CheckCircle2,
     className: 'bg-emerald-500 text-white border-emerald-600',
   },
+  pedido_chegou: {
+    label: 'Pedido Chegou',
+    icon: CheckCircle2,
+    className: 'bg-sky-600 text-white border-sky-700',
+  },
 };
 
 export default function StatusBadge({ status }) {

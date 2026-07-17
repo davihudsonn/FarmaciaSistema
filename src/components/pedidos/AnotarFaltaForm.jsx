@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Save, X, AlertTriangle, Clock, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { buildObservacoesWithEan, findPedidoByEan } from './pedidoUtils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -14,6 +17,8 @@ const statusInfo = {
   em_falta: { label: 'Em Falta', icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-50 border-red-200' },
   pendente: { label: 'Pendente', icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200' },
   pedido_realizado: { label: 'Pedido Realizado', icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-200' },
+  pedido_chegou: {label: 'Pedido Chegou',icon: CheckCircle2,color: 'text-sky-600',bg: 'bg-sky-50 border-sky-200',
+  },
 };
 
 function DuplicateAlert({ pedido }) {
@@ -27,16 +32,38 @@ function DuplicateAlert({ pedido }) {
         <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
         <span>Medicamento já anotado!</span>
       </div>
-      <div className={`flex items-center gap-1.5 text-sm ${info.color} font-medium`}>
-        <Icon className="h-4 w-4" />
-        Status atual: <strong>{info.label}</strong>
-      </div>
-      <div className="text-xs text-muted-foreground space-y-0.5">
-        <p>📝 Anotado em: <span className="font-medium text-foreground">{formatDate(pedido.data_anotacao || pedido.created_date)}</span></p>
-        {pedido.data_pedido && (
-          <p>✅ Pedido realizado em: <span className="font-medium text-foreground">{formatDate(pedido.data_pedido)}</span></p>
-        )}
-        {pedido.distribuidora && <p>🏢 Distribuidora: <span className="font-medium text-foreground">{pedido.distribuidora}</span></p>}
+      <div className="flex items-center gap-2 text-sm font-semibold text-sky-700">
+  📋 Histórico do medicamento
+</div>
+      <div className="text-xs text-muted-foreground space-y-1">
+
+  <p>
+    📝 Última anotação:
+    <span className="font-medium text-foreground">
+      {" "}
+      {formatDate(pedido.data_anotacao || pedido.created_at)}
+    </span>
+  </p>
+
+  {pedido.data_pedido && (
+    <p>
+      📦 Último pedido:
+      <span className="font-medium text-foreground">
+        {" "}
+        {formatDate(pedido.data_pedido)}
+      </span>
+    </p>
+  )}
+
+  {pedido.data_chegada && (
+    <p>
+      ✅ Última chegada:
+      <span className="font-medium text-foreground">
+        {" "}
+        {formatDate(pedido.data_chegada)}
+      </span>
+    </p>
+  )}
         {pedido.quantidade > 0 && <p>📦 Quantidade: <span className="font-medium text-foreground">{pedido.quantidade}</span></p>}
       </div>
     </div>
@@ -44,20 +71,20 @@ function DuplicateAlert({ pedido }) {
 }
 
 export default function AnotarFaltaForm({ onSubmit, onCancel, isSubmitting }) {
-  const [form, setForm] = useState({ medicamento: '', observacoes: '', categoria: '', laboratorio: '', responsavel: '' });
+  const [form, setForm] = useState({ medicamento: '', observacoes: '', categoria: '', laboratorio: '', responsavel: '', ean: '', ean_desconhecido: false });
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showLaboratorySuggestions, setShowLaboratorySuggestions] = useState(false);
   const [showResponsibleSuggestions, setShowResponsibleSuggestions] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [matchedPedido, setMatchedPedido] = useState(null);
   const inputRef = useRef(null);
 
   const { data: pedidos = [] } = useQuery({
-    queryKey: ['pedidos'],
+    queryKey: ['pedidos-history'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('pedidos')
         .select('*')
-        .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -70,6 +97,26 @@ export default function AnotarFaltaForm({ onSubmit, onCancel, isSubmitting }) {
     if (nome.length < 3) return null;
     return pedidos.find(p => p.medicamento?.toLowerCase() === nome) || null;
   }, [form.medicamento, pedidos]);
+
+  useEffect(() => {
+    if (form.ean_desconhecido || !form.ean?.trim()) {
+      setMatchedPedido(null);
+      return;
+    }
+
+    const pedidoEncontrado = findPedidoByEan(pedidos, form.ean);
+    setMatchedPedido(pedidoEncontrado);
+
+    if (!pedidoEncontrado) return;
+
+    setForm((prev) => ({
+      ...prev,
+      medicamento: prev.medicamento?.trim() ? prev.medicamento : pedidoEncontrado.medicamento || prev.medicamento,
+      categoria: prev.categoria?.trim() ? prev.categoria : pedidoEncontrado.categoria || prev.categoria,
+      laboratorio: prev.laboratorio?.trim() ? prev.laboratorio : pedidoEncontrado.laboratorio || prev.laboratorio,
+
+    }));
+  }, [form.ean, form.ean_desconhecido, pedidos]);
 
   const suggestions = useMemo(() => {
     const termo = form.medicamento.trim().toLowerCase();
@@ -116,15 +163,20 @@ export default function AnotarFaltaForm({ onSubmit, onCancel, isSubmitting }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!form.ean_desconhecido && !form.ean?.trim()) {
+      toast.error('Informe o EAN ou marque a opção “EAN desconhecido”.');
+      return;
+    }
+
     setIsSaving(true);
 
     try {
+      const { ean, ean_desconhecido, ...restForm } = form;
+
       await onSubmit({
-        medicamento: form.medicamento,
-        observacoes: form.observacoes,
-        categoria: form.categoria,
-        laboratorio: form.laboratorio,
-        responsavel: form.responsavel,
+        ...restForm,
+        observacoes: buildObservacoesWithEan(form.observacoes, form.ean, form.ean_desconhecido),
         status: 'pendente',
         quantidade: 0,
         distribuidora: '',
@@ -160,22 +212,22 @@ export default function AnotarFaltaForm({ onSubmit, onCancel, isSubmitting }) {
               {showSuggestions && suggestions.length > 0 && (
                 <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
                   {suggestions.map((p) => {
-                    const info = statusInfo[p.status] || statusInfo.em_falta;
-                    const Icon = info.icon;
                     return (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onMouseDown={() => handleSelectSuggestion(p.medicamento)}
-                        className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-muted/60 transition-colors text-left border-b border-border/50 last:border-0"
-                      >
-                        <span className="text-sm font-medium text-foreground">{p.medicamento}</span>
-                        <span className={`flex items-center gap-1 text-xs font-semibold ${info.color}`}>
-                          <Icon className="h-3.5 w-3.5" />
-                          {info.label}
-                        </span>
-                      </button>
-                    );
+  <button
+    key={p.id}
+    type="button"
+    onMouseDown={() => handleSelectSuggestion(p.medicamento)}
+    className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-muted/60 transition-colors text-left border-b border-border/50 last:border-0"
+  >
+    <span className="text-sm font-medium text-foreground">
+      {p.medicamento}
+    </span>
+
+    <span className="text-xs font-semibold text-sky-600">
+      Produto com cadastro
+    </span>
+  </button>
+);
                   })}
                 </div>
               )}
@@ -210,6 +262,43 @@ export default function AnotarFaltaForm({ onSubmit, onCancel, isSubmitting }) {
                       {laboratorio}
                     </button>
                   ))}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ean">EAN / Código de barras</Label>
+              <Input
+                id="ean"
+                placeholder="Ex: 7891234567890"
+                value={form.ean}
+                onChange={(e) => setForm({ ...form, ean: e.target.value })}
+                disabled={form.ean_desconhecido}
+                inputMode="numeric"
+                maxLength={20}
+              />
+              <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Checkbox
+                  checked={form.ean_desconhecido}
+                  onCheckedChange={(checked) => setForm({ ...form, ean_desconhecido: Boolean(checked), ean: Boolean(checked) ? '' : form.ean })}
+                />
+                EAN desconhecido
+              </label>
+
+              {matchedPedido && (
+                <div className="rounded-lg border border-sky-200 bg-sky-50/70 p-3 text-sm text-sky-900">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-semibold">Código encontrado</span>
+                    <span className="text-xs uppercase tracking-wide text-sky-700">
+  Produto com cadastro
+</span>
+                  </div>
+                  <p className="mt-1 font-medium">{matchedPedido.medicamento}</p>
+                  <div className="mt-1 text-xs text-sky-800/90 space-y-0.5">
+                    {matchedPedido.laboratorio && <p>Laboratório: {matchedPedido.laboratorio}</p>}
+                    {matchedPedido.categoria && <p>Categoria: {matchedPedido.categoria}</p>}
+                    {matchedPedido.responsavel && <p>Responsável: {matchedPedido.responsavel}</p>}
+                  </div>
                 </div>
               )}
             </div>

@@ -86,9 +86,13 @@ const handleMarkDone = (pedido) => {
   });
 };
 
+const handleMarkArrived = (pedido) => {
+  deleteMutation.mutate(pedido.id);
+};
+
   // ===================== FILTRO =====================
   const recentPending = pedidos
-    .filter(p => p.status !== 'pedido_realizado')
+    .filter(p => p.status !== 'pedido_chegou')
     .slice(0, 5);
 
   // ===================== LOADING =====================
@@ -177,6 +181,7 @@ const handleMarkDone = (pedido) => {
                 pedido={pedido}
                 index={i}
                 onMarkDone={handleMarkDone}
+                onMarkArrived={handleMarkArrived}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
               />
