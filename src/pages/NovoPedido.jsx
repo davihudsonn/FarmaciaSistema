@@ -14,7 +14,6 @@ export default function NovoPedido() {
         {
           medicamento: data.medicamento,
           quantidade: data.quantidade,
-          distribuidora: data.distribuidora,
           observacoes: buildObservacoesWithEan(data.observacoes, data.ean, data.ean_desconhecido),
           categoria: data.categoria,
           laboratorio: data.laboratorio,
@@ -35,7 +34,7 @@ export default function NovoPedido() {
   };
 
   return (
-    <div className="max-w-xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
           Anotar Falta

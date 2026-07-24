@@ -18,7 +18,7 @@ export default function Relatorio() {
     queryFn: async () => {
       const { data } = await supabase
         .from('pedidos')
-        .select('id, medicamento, created_at, data_anotacao, data_pedido, data_chegada, deleted_at, status, categoria, laboratorio, responsavel, quantidade, distribuidora, observacoes, ean')
+        .select('id, medicamento, created_at, data_anotacao, data_pedido, data_chegada, deleted_at, status, categoria, laboratorio, responsavel, quantidade, observacoes, ean')
         .order('created_at', { ascending: false });
       return data || [];
     },
@@ -166,7 +166,6 @@ export default function Relatorio() {
       responsavel: 'Responsável',
       status: 'Status',
       quantidade: 'Quantidade',
-      distribuidora: 'Distribuidora',
       observacoes: 'Observações',
       data_anotacao: 'Data de anotação',
       data_pedido: 'Data do pedido',

@@ -20,6 +20,13 @@ const statusInfo = {
   pedido_chegou: {label: 'Pedido Chegou',icon: CheckCircle2,color: 'text-sky-600',bg: 'bg-sky-50 border-sky-200',
   },
 };
+const laboratoriosOL = [
+  "ACHE",
+  "BIOLAB",
+  "EUROFARMA",
+  "APSEN",
+  "SUPERA",
+];
 
 function DuplicateAlert({ pedido }) {
   const info = statusInfo[pedido.status] || statusInfo.em_falta;
@@ -71,6 +78,7 @@ function DuplicateAlert({ pedido }) {
 }
 
 export default function AnotarFaltaForm({ onSubmit, onCancel, isSubmitting }) {
+  const [isOL, setIsOL] = useState(false);
   const [form, setForm] = useState({ medicamento: '', observacoes: '', categoria: '', laboratorio: '', responsavel: '', ean: '', ean_desconhecido: false });
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showLaboratorySuggestions, setShowLaboratorySuggestions] = useState(false);
@@ -136,10 +144,18 @@ export default function AnotarFaltaForm({ onSubmit, onCancel, isSubmitting }) {
   }, [form.laboratorio, pedidos]);
 
   const laboratoriosFiltrados = useMemo(() => {
+    const lista = isOL
+    ? laboratoriosOL
+    : laboratoriosDisponiveis;
     const termo = form.laboratorio.trim().toLowerCase();
-    if (!termo) return laboratoriosDisponiveis.slice(0, 6);
-    return laboratoriosDisponiveis.filter((laboratorio) => laboratorio.toLowerCase().includes(termo)).slice(0, 6);
-  }, [form.laboratorio, laboratoriosDisponiveis]);
+    if (!termo) return lista.slice(0, 6);
+    return lista
+        .filter(l =>
+            l.toLowerCase().includes(termo)
+        )
+        .slice(0, 6);
+
+}, [form.laboratorio, laboratoriosDisponiveis, isOL]);
 
   const responsaveisDisponiveis = useMemo(() => {
     const nomes = [
@@ -176,10 +192,13 @@ export default function AnotarFaltaForm({ onSubmit, onCancel, isSubmitting }) {
 
       await onSubmit({
         ...restForm,
+        ol: isOL,
+        medicamento: restForm.medicamento.toUpperCase().trim(),
+        laboratorio: restForm.laboratorio.toUpperCase().trim(),
+        responsavel: restForm.responsavel.toUpperCase().trim(),
         observacoes: buildObservacoesWithEan(form.observacoes, form.ean, form.ean_desconhecido),
         status: 'pendente',
         quantidade: 0,
-        distribuidora: '',
         data_anotacao: new Date().toISOString(),
       });
     } finally {
@@ -194,79 +213,7 @@ export default function AnotarFaltaForm({ onSubmit, onCancel, isSubmitting }) {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-4">
-            <div className="space-y-2 relative">
-              <Label htmlFor="medicamento">Medicamento *</Label>
-              <Input
-                id="medicamento"
-                ref={inputRef}
-                placeholder="Nome do medicamento em falta"
-                value={form.medicamento}
-                onChange={(e) => { setForm({ ...form, medicamento: e.target.value }); setShowSuggestions(true); }}
-                onFocus={() => setShowSuggestions(true)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-                required
-                autoFocus
-                autoComplete="off"
-              />
-              {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
-                  {suggestions.map((p) => {
-                    return (
-  <button
-    key={p.id}
-    type="button"
-    onMouseDown={() => handleSelectSuggestion(p.medicamento)}
-    className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-muted/60 transition-colors text-left border-b border-border/50 last:border-0"
-  >
-    <span className="text-sm font-medium text-foreground">
-      {p.medicamento}
-    </span>
-
-    <span className="text-xs font-semibold text-sky-600">
-      Produto com cadastro
-    </span>
-  </button>
-);
-                  })}
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2 relative">
-              <Label htmlFor="laboratorio">Laboratório *</Label>
-              <Input
-                id="laboratorio"
-                placeholder="Selecione ou escreva o laboratório"
-                value={form.laboratorio}
-                onChange={(e) => {
-                  setForm({ ...form, laboratorio: e.target.value });
-                  setShowLaboratorySuggestions(true);
-                }}
-                onFocus={() => setShowLaboratorySuggestions(true)}
-                onBlur={() => setTimeout(() => setShowLaboratorySuggestions(false), 150)}
-                required
-              />
-              {showLaboratorySuggestions && laboratoriosFiltrados.length > 0 && (
-                <div className="absolute z-40 top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
-                  {laboratoriosFiltrados.map((laboratorio) => (
-                    <button
-                      key={laboratorio}
-                      type="button"
-                      onMouseDown={() => {
-                        setForm({ ...form, laboratorio });
-                        setShowLaboratorySuggestions(false);
-                      }}
-                      className="w-full px-3 py-2.5 hover:bg-muted/60 transition-colors text-left text-sm font-medium text-foreground border-b border-border/50 last:border-0"
-                    >
-                      {laboratorio}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
+                      <div className="space-y-2">
               <Label htmlFor="ean">EAN / Código de barras</Label>
               <Input
                 id="ean"
@@ -302,6 +249,44 @@ export default function AnotarFaltaForm({ onSubmit, onCancel, isSubmitting }) {
                 </div>
               )}
             </div>
+          <div className="space-y-4">
+            <div className="space-y-2 relative">
+              <Label htmlFor="medicamento">Medicamento *</Label>
+              <Input
+                id="medicamento"
+                ref={inputRef}
+                placeholder="Nome do medicamento em falta"
+                value={form.medicamento}
+                onChange={(e) => { setForm({ ...form, medicamento: e.target.value.toUpperCase() }); setShowSuggestions(true); }}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                required
+                autoFocus
+                autoComplete="off"
+              />
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
+                  {suggestions.map((p) => {
+                    return (
+  <button
+    key={p.id}
+    type="button"
+    onMouseDown={() => handleSelectSuggestion(p.medicamento)}
+    className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-muted/60 transition-colors text-left border-b border-border/50 last:border-0"
+  >
+    <span className="text-sm font-medium text-foreground">
+      {p.medicamento}
+    </span>
+
+    <span className="text-xs font-semibold text-sky-600">
+      Produto com cadastro
+    </span>
+  </button>
+);
+                  })}
+                </div>
+              )}
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="categoria">Categoria *</Label>
@@ -309,9 +294,11 @@ export default function AnotarFaltaForm({ onSubmit, onCancel, isSubmitting }) {
               <select
                 id="categoria"
                 value={form.categoria}
-                onChange={(e) =>
-                  setForm({ ...form, categoria: e.target.value })
-                }
+                onChange={(e) => {
+                  const categoria = e.target.value;
+
+                  setForm({ ...form, categoria,laboratorio: categoria === "etico" ? "" : form.laboratorio, });
+                }}
                 className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
                 required
               >
@@ -324,6 +311,58 @@ export default function AnotarFaltaForm({ onSubmit, onCancel, isSubmitting }) {
                 <option value="etico">💊Ético</option>
               </select>
             </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                checked={isOL}
+                onCheckedChange={(checked) => {
+                  setIsOL(Boolean(checked));
+
+                  setForm({
+                    ...form,
+                    laboratorio: "",
+                  });
+                }}
+              />
+
+              <Label>Medicamento de OL</Label>
+            </div>
+
+            <div className="space-y-2 relative">
+              <Label htmlFor="laboratorio">
+                {form.categoria === "etico"
+                  ? "Laboratório (opcional)"
+                  : "Laboratório *"}
+              </Label>
+              <Input
+                id="laboratorio"
+                placeholder="Selecione ou escreva o laboratório"
+                value={form.laboratorio}
+                onChange={(e) => {
+                  setForm({ ...form, laboratorio: e.target.value.toUpperCase() });
+                  setShowLaboratorySuggestions(true);
+                }}
+                onFocus={() => setShowLaboratorySuggestions(true)}
+                onBlur={() => setTimeout(() => setShowLaboratorySuggestions(false), 150)}
+                required={form.categoria !== "etico"}
+              />
+              {showLaboratorySuggestions && laboratoriosFiltrados.length > 0 && (
+                <div className="absolute z-40 top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
+                  {laboratoriosFiltrados.map((laboratorio) => (
+                    <button
+                      key={laboratorio}
+                      type="button"
+                      onMouseDown={() => {
+                        setForm({ ...form, laboratorio });
+                        setShowLaboratorySuggestions(false);
+                      }}
+                      className="w-full px-3 py-2.5 hover:bg-muted/60 transition-colors text-left text-sm font-medium text-foreground border-b border-border/50 last:border-0"
+                    >
+                      {laboratorio}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             <div className="space-y-2 relative">
               <Label htmlFor="responsavel">Responsável pela anotação *</Label>
@@ -332,7 +371,7 @@ export default function AnotarFaltaForm({ onSubmit, onCancel, isSubmitting }) {
                 placeholder="Nome do funcionário"
                 value={form.responsavel}
                 onChange={(e) => {
-                  setForm({ ...form, responsavel: e.target.value });
+                  setForm({ ...form, responsavel: e.target.value.toUpperCase() });
                   setShowResponsibleSuggestions(true);
                 }}
                 onFocus={() => setShowResponsibleSuggestions(true)}
@@ -373,7 +412,7 @@ export default function AnotarFaltaForm({ onSubmit, onCancel, isSubmitting }) {
           </div>
 
           <p className="text-xs text-muted-foreground bg-muted/60 rounded-lg px-3 py-2">
-            💡 Quantidade e distribuidora podem ser preenchidos depois ao editar o pedido.
+            💡 Quantidade e Laboratório podem ser preenchidos depois ao editar o pedido.
           </p>
 
           <div className="flex justify-end gap-3 pt-1">

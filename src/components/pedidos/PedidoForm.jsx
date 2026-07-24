@@ -19,7 +19,6 @@ export default function PedidoForm({ pedido, onSubmit, onCancel, isSubmitting })
   const [form, setForm] = useState({
     medicamento: '',
     quantidade: '',
-    distribuidora: '',
     observacoes: '',
     status: 'em_falta',
     categoria: '',
@@ -27,6 +26,7 @@ export default function PedidoForm({ pedido, onSubmit, onCancel, isSubmitting })
     responsavel: '',
     ean: '',
     ean_desconhecido: false,
+    ol:false,
   });
 
   const { data: pedidos = [] } = useQuery({
@@ -115,36 +115,33 @@ export default function PedidoForm({ pedido, onSubmit, onCancel, isSubmitting })
         responsavel: pedido.responsavel || '',
         ean: pedido.ean || '',
         ean_desconhecido: Boolean(pedido.ean_desconhecido),
+        ol: Boolean(pedido.ol),
       });
     }
   }, [pedido]);
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-
-    if (!form.ean_desconhecido && !form.ean?.trim()) {
-      toast.error('Informe o EAN ou marque a opção “EAN desconhecido”.');
-      return;
-    }
-
+  e.preventDefault();
+  try {
     const { ean, ean_desconhecido, ...restForm } = form;
+    onSubmit({
+      ...restForm,
+      ol: form.ol,
+      ean,
+      ean_desconhecido,
+      observacoes: buildObservacoesWithEan(
+        form.observacoes,
+        ean,
+        ean_desconhecido
+      ),
+      quantidade: Number(form.quantidade) || 0,
+      data_anotacao: pedido?.data_anotacao || new Date().toISOString(),
+    });
 
-onSubmit({
-  ...restForm,
+  } catch (err) {
 
-  ean,
-  ean_desconhecido,
-
-  observacoes: buildObservacoesWithEan(
-    form.observacoes,
-    ean,
-    ean_desconhecido
-  ),
-
-  quantidade: Number(form.quantidade) || 0,
-  data_anotacao: pedido?.data_anotacao || new Date().toISOString(),
-});
-  };
+  }
+};
 
   return (
     <Card className="border-none shadow-sm">

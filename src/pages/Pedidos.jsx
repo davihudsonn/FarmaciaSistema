@@ -56,15 +56,17 @@ export default function Pedidos() {
   });
 
   // ===================== UPDATE =====================
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, data }) => {
-      const { error } = await supabase
-        .from('pedidos')
-        .update(data)
-        .eq('id', id);
+ const updateMutation = useMutation({
+  mutationFn: async ({ id, data }) => {
+    const { data: result, error } = await supabase
+      .from("pedidos")
+      .update(data)
+      .eq("id", id)
+      .select();
+    if (error) throw error;
 
-      if (error) throw error;
-    },
+    return result;
+  },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pedidos'] });
       toast.success('Pedido atualizado!');
@@ -174,7 +176,6 @@ export default function Pedidos() {
 
   const searchableText = [
     p.medicamento,
-    p.distribuidora,
     p.laboratorio,
     p.ean,
     p.observacoes,
