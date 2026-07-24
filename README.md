@@ -1,65 +1,114 @@
 # 💊 Sistema de Controle de Falta de Medicamentos
 
-Projeto desenvolvido utilizando **React**, **HTML**, **CSS** e **JavaScript**, com foco em auxiliar no controle de medicamentos em falta dentro de farmácias. O sistema permite registrar produtos, acompanhar o status dos pedidos e organizar os medicamentos por categorias, facilitando o gerenciamento do estoque no dia a dia.
+Sistema web desenvolvido para auxiliar farmácias no gerenciamento de medicamentos em falta, permitindo registrar produtos, acompanhar pedidos, controlar o estoque e organizar informações de forma simples e eficiente.
+
+O projeto foi desenvolvido utilizando **React**, **JavaScript**, **Supabase** e **Vite**, oferecendo uma interface moderna e responsiva para facilitar o uso no dia a dia.
 
 ---
 
 ## 🚀 Funcionalidades
 
-✅ Adicionar medicamentos em falta
-✅ Editar o status do medicamento
-✅ Remover medicamentos da lista
-✅ Visualizar data em que o item foi anotado
-✅ Visualizar data do pedido realizado
-✅ Organização por categorias
-✅ Interface simples e prática para uso diário
+- ✅ Cadastro de medicamentos em falta
+- ✅ Edição completa dos pedidos
+- ✅ Exclusão de pedidos
+- ✅ Controle de status dos medicamentos
+- ✅ Histórico de pedidos realizados e recebidos
+- ✅ Pesquisa por nome, EAN, laboratório, categoria e responsável
+- ✅ Filtros por status, categoria, laboratório e período
+- ✅ Cadastro e leitura de código de barras (EAN)
+- ✅ Opção de medicamento sem EAN
+- ✅ Preenchimento automático de informações através do EAN
+- ✅ Registro de responsável pelo pedido
+- ✅ Registro do laboratório
+- ✅ Controle de quantidade
+- ✅ Datas automáticas de anotação, pedido e chegada
+- ✅ Interface responsiva e intuitiva
 
 ---
 
-## 📌 Status disponíveis
+## 📌 Fluxo dos Status
 
-O sistema possui diferentes status para acompanhar cada medicamento:
+Cada medicamento passa pelas seguintes etapas:
 
-* 🔴 Em falta
-* 🟡 Pendente
-* 🟢 Disponível para pedir
-* 🔵 Pedido realizado
+- 🔴 Em Falta
+- 🟡 Pendente
+- 🟢 Pedido Realizado
+- ✅ Pedido Chegou
 
 ---
 
 ## 🗂️ Categorias
 
-Os medicamentos podem ser organizados nas seguintes categorias:
+O sistema permite organizar os medicamentos nas seguintes categorias:
 
-* Ético
-* Genérico
-* Fraldas
-* Cosméticos
+- Ético
+- Genérico
+- Similar
+- Controlado
+- Antibiótico
+- Cosmético
+- Fralda
+
+---
+
+## 🔍 Pesquisa Inteligente
+
+É possível localizar medicamentos pesquisando por:
+
+- Nome
+- Código EAN
+- Laboratório
+- Categoria
+- Responsável
+- Observações
+
+---
+
+## 📦 Informações armazenadas
+
+Cada pedido registra:
+
+- Medicamento
+- Quantidade
+- Código EAN
+- Laboratório
+- Categoria
+- Responsável
+- Observações
+- Status
+- Data da anotação
+- Data do pedido
+- Data da chegada
 
 ---
 
 ## 🛠️ Tecnologias utilizadas
 
-* ⚛️ React
-* 🌐 HTML5
-* 🎨 CSS3
-* 📜 JavaScript
+- ⚛️ React
+- 📜 JavaScript
+- ⚡ Vite
+- 🟢 Supabase
+- 🎨 Tailwind CSS
+- 🧩 shadcn/ui
+- 🔄 React Query
+- 🗄️ PostgreSQL
 
 ---
 
 ## 🎯 Objetivo do Projeto
 
-Esse projeto foi desenvolvido com o objetivo de praticar e aprimorar conhecimentos em:
+Este projeto foi desenvolvido para solucionar uma necessidade real encontrada em uma farmácia, facilitando o controle de medicamentos em falta e o acompanhamento dos pedidos.
 
-* Manipulação de estados no React
-* Componentização
-* Organização de dados
-* Manipulação de listas
-* CRUD no front-end
-* Estilização com CSS
-* Lógica em JavaScript
+Além disso, serviu como prática para diversos conceitos de desenvolvimento web, como:
 
-Além disso, o sistema foi pensado para resolver uma necessidade real do ambiente farmacêutico, tornando o controle de faltas mais rápido e organizado.
+- Componentização
+- Hooks do React
+- CRUD completo
+- Integração com banco de dados
+- React Query
+- Filtros e pesquisa
+- Gerenciamento de estados
+- Interface responsiva
 
 ---
 
@@ -68,19 +117,26 @@ Além disso, o sistema foi pensado para resolver uma necessidade real do ambient
 Clone o repositório:
 
 ```bash
-git clone URL_DO_SEU_REPOSITORIO
+git clone https://github.com/davihudsonn/FarmaciaSistema.git
 ```
 
-Acesse a pasta:
+Entre na pasta do projeto:
 
 ```bash
-cd nome-do-projeto
+cd FarmaciaSistema
 ```
 
 Instale as dependências:
 
 ```bash
 npm install
+```
+
+Configure as variáveis de ambiente criando um arquivo `.env`:
+
+```env
+VITE_SUPABASE_URL=Sua_URL
+VITE_SUPABASE_ANON_KEY=Sua_CHAVE
 ```
 
 Execute o projeto:
@@ -93,10 +149,15 @@ npm run dev
 
 ## 📄 Licença
 
-Este projeto está sob a licença MIT.
+Este projeto está licenciado sob a licença MIT.
 
 ---
 
 ## 👨‍💻 Desenvolvedor
 
-Desenvolvido por **Davi Hudson** 🚀
+**Davi Hudson**
+
+Estudante de Engenharia de Software apaixonado por desenvolvimento web e criação de soluções para problemas reais.
+
+- GitHub: https://github.com/davihudsonn
+- LinkedIn: *(adicione seu LinkedIn aqui)*
