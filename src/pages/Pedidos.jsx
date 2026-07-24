@@ -174,7 +174,6 @@ export default function Pedidos() {
 
   const searchableText = [
     p.medicamento,
-    p.distribuidora,
     p.laboratorio,
     p.ean,
     p.observacoes,

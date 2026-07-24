@@ -19,7 +19,6 @@ export default function PedidoForm({ pedido, onSubmit, onCancel, isSubmitting })
   const [form, setForm] = useState({
     medicamento: '',
     quantidade: '',
-    distribuidora: '',
     observacoes: '',
     status: 'em_falta',
     categoria: '',
