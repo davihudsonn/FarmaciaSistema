@@ -249,7 +249,7 @@ export default function AnotarFaltaForm({ onSubmit, onCancel, isSubmitting }) {
                 </div>
               )}
             </div>
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2 relative">
               <Label htmlFor="medicamento">Medicamento *</Label>
               <Input
@@ -288,83 +288,7 @@ export default function AnotarFaltaForm({ onSubmit, onCancel, isSubmitting }) {
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="categoria">Categoria *</Label>
-
-              <select
-                id="categoria"
-                value={form.categoria}
-                onChange={(e) => {
-                  const categoria = e.target.value;
-
-                  setForm({ ...form, categoria,laboratorio: categoria === "etico" ? "" : form.laboratorio, });
-                }}
-                className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-                required
-              >
-                <option value="">Selecione a categoria</option>
-                <option value="generico">💊Genérico / Similar</option>
-                <option value="controlado">💊Controlado</option>
-                <option value="antibiotico">💊Antibiótico</option>
-                <option value="fralda">🚼Fralda</option>
-                <option value="cosmetico">💅Cosmético</option>
-                <option value="etico">💊Ético</option>
-              </select>
-            </div>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                checked={isOL}
-                onCheckedChange={(checked) => {
-                  setIsOL(Boolean(checked));
-
-                  setForm({
-                    ...form,
-                    laboratorio: "",
-                  });
-                }}
-              />
-
-              <Label>Medicamento de OL</Label>
-            </div>
-
-            <div className="space-y-2 relative">
-              <Label htmlFor="laboratorio">
-                {form.categoria === "etico"
-                  ? "Laboratório (opcional)"
-                  : "Laboratório *"}
-              </Label>
-              <Input
-                id="laboratorio"
-                placeholder="Selecione ou escreva o laboratório"
-                value={form.laboratorio}
-                onChange={(e) => {
-                  setForm({ ...form, laboratorio: e.target.value.toUpperCase() });
-                  setShowLaboratorySuggestions(true);
-                }}
-                onFocus={() => setShowLaboratorySuggestions(true)}
-                onBlur={() => setTimeout(() => setShowLaboratorySuggestions(false), 150)}
-                required={form.categoria !== "etico"}
-              />
-              {showLaboratorySuggestions && laboratoriosFiltrados.length > 0 && (
-                <div className="absolute z-40 top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
-                  {laboratoriosFiltrados.map((laboratorio) => (
-                    <button
-                      key={laboratorio}
-                      type="button"
-                      onMouseDown={() => {
-                        setForm({ ...form, laboratorio });
-                        setShowLaboratorySuggestions(false);
-                      }}
-                      className="w-full px-3 py-2.5 hover:bg-muted/60 transition-colors text-left text-sm font-medium text-foreground border-b border-border/50 last:border-0"
-                    >
-                      {laboratorio}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2 relative">
+                        <div className="space-y-2 relative">
               <Label htmlFor="responsavel">Responsável pela anotação *</Label>
               <Input
                 id="responsavel"
@@ -397,6 +321,86 @@ export default function AnotarFaltaForm({ onSubmit, onCancel, isSubmitting }) {
               )}
             </div>
           </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2 relative">
+              <Label htmlFor="categoria">Categoria *</Label>
+
+              <select
+                id="categoria"
+                value={form.categoria}
+                onChange={(e) => {
+                  const categoria = e.target.value;
+
+                  setForm({ ...form, categoria,laboratorio: categoria === "etico" ? "" : form.laboratorio, });
+                }}
+                className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                required
+              >
+                <option value="">Selecione a categoria</option>
+                <option value="generico">💊Genérico / Similar</option>
+                <option value="controlado">💊Controlado</option>
+                <option value="antibiotico">💊Antibiótico</option>
+                <option value="fralda">🚼Fralda</option>
+                <option value="cosmetico">💅Cosmético</option>
+                <option value="etico">💊Ético</option>
+              </select>
+              </div>
+
+
+            <div className="space-y-2 relative">
+              <Label htmlFor="laboratorio">
+                {form.categoria === "etico"
+                  ? "Laboratório (opcional)"
+                  : "Laboratório *"}
+              </Label>
+              <Input
+                id="laboratorio"
+                placeholder="Selecione ou escreva o laboratório"
+                value={form.laboratorio}
+                onChange={(e) => {
+                  setForm({ ...form, laboratorio: e.target.value.toUpperCase() });
+                  setShowLaboratorySuggestions(true);
+                }}
+                onFocus={() => setShowLaboratorySuggestions(true)}
+                onBlur={() => setTimeout(() => setShowLaboratorySuggestions(false), 150)}
+                required={form.categoria !== "etico"}
+              />
+              <div className="flex items-center gap-3 pt-3">
+              <Checkbox
+                checked={isOL}
+                onCheckedChange={(checked) => {
+                  setIsOL(Boolean(checked));
+
+                  setForm({
+                    ...form,
+                    laboratorio: "",
+                  });
+                }}
+              />
+
+              <Label htmlFor="ol" className="cursor-pointer">Medicamento de OL</Label>
+            </div>
+              {showLaboratorySuggestions && laboratoriosFiltrados.length > 0 && (
+                <div className="absolute z-40 top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
+                  {laboratoriosFiltrados.map((laboratorio) => (
+                    <button
+                      key={laboratorio}
+                      type="button"
+                      onMouseDown={() => {
+                        setForm({ ...form, laboratorio });
+                        setShowLaboratorySuggestions(false);
+                      }}
+                      className="w-full px-3 py-2.5 hover:bg-muted/60 transition-colors text-left text-sm font-medium text-foreground border-b border-border/50 last:border-0"
+                    >
+                      {laboratorio}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            </div>
+
+
 
           {duplicado && <DuplicateAlert pedido={duplicado} />}
 
