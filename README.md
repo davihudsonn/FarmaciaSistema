@@ -1,102 +1,159 @@
 # 💊 Sistema de Controle de Falta de Medicamentos
 
-Projeto desenvolvido utilizando **React**, **HTML**, **CSS** e **JavaScript**, com foco em auxiliar no controle de medicamentos em falta dentro de farmácias. O sistema permite registrar produtos, acompanhar o status dos pedidos e organizar os medicamentos por categorias, facilitando o gerenciamento do estoque no dia a dia.
+Um sistema web desenvolvido para auxiliar farmácias no gerenciamento de medicamentos em falta, permitindo registrar solicitações, acompanhar pedidos e organizar o processo de reposição de estoque de forma simples, rápida e intuitiva.
+
+O projeto foi criado pensando principalmente em pequenas e médias farmácias que ainda realizam esse controle de maneira manual, oferecendo uma solução prática para reduzir perdas, facilitar a comunicação da equipe e melhorar a organização dos pedidos.
 
 ---
 
-## 🚀 Funcionalidades
+## 🚀 Tecnologias Utilizadas
 
-✅ Adicionar medicamentos em falta
-✅ Editar o status do medicamento
-✅ Remover medicamentos da lista
-✅ Visualizar data em que o item foi anotado
-✅ Visualizar data do pedido realizado
-✅ Organização por categorias
-✅ Interface simples e prática para uso diário
-
----
-
-## 📌 Status disponíveis
-
-O sistema possui diferentes status para acompanhar cada medicamento:
-
-* 🔴 Em falta
-* 🟡 Pendente
-* 🟢 Disponível para pedir
-* 🔵 Pedido realizado
+* React
+* JavaScript (ES6+)
+* Vite
+* Tailwind CSS
+* Supabase
+* React Query
+* Lucide React
+* Date-fns
 
 ---
 
-## 🗂️ Categorias
+## ✨ Funcionalidades
 
-Os medicamentos podem ser organizados nas seguintes categorias:
+### 📋 Registro de medicamentos em falta
 
-* Ético
-* Genérico
-* Fraldas
-* Cosméticos
-
----
-
-## 🛠️ Tecnologias utilizadas
-
-* ⚛️ React
-* 🌐 HTML5
-* 🎨 CSS3
-* 📜 JavaScript
+* Cadastro de medicamentos em falta.
+* Registro do responsável pela anotação.
+* Seleção da categoria do medicamento.
+* Campo para observações.
+* Registro automático da data e hora da anotação.
 
 ---
 
-## 🎯 Objetivo do Projeto
+### 📦 Controle de pedidos
 
-Esse projeto foi desenvolvido com o objetivo de praticar e aprimorar conhecimentos em:
+Cada medicamento possui um fluxo completo de acompanhamento:
 
-* Manipulação de estados no React
-* Componentização
-* Organização de dados
-* Manipulação de listas
-* CRUD no front-end
-* Estilização com CSS
-* Lógica em JavaScript
+* ⏳ Pendente
+* 📦 Pedido Realizado
+* ✅ Pedido Chegou
 
-Além disso, o sistema foi pensado para resolver uma necessidade real do ambiente farmacêutico, tornando o controle de faltas mais rápido e organizado.
+Também são registrados automaticamente:
 
----
-
-## ▶️ Como executar o projeto
-
-Clone o repositório:
-
-```bash
-git clone URL_DO_SEU_REPOSITORIO
-```
-
-Acesse a pasta:
-
-```bash
-cd nome-do-projeto
-```
-
-Instale as dependências:
-
-```bash
-npm install
-```
-
-Execute o projeto:
-
-```bash
-npm run dev
-```
+* Data da anotação
+* Data do pedido
+* Data da chegada
+* Quantidade recebida
 
 ---
 
-## 📄 Licença
+### 🔍 Pesquisa por EAN
 
-Este projeto está sob a licença MIT.
+O sistema permite informar o código de barras (EAN) do medicamento.
+
+Ao localizar um cadastro existente, o sistema:
+
+* identifica automaticamente o medicamento;
+* preenche informações já cadastradas;
+* exibe laboratório, categoria e responsável;
+* reduz erros de digitação.
+
+Também existe a opção **EAN desconhecido** para medicamentos sem código disponível.
+
+---
+
+### 🏷️ Sugestões Inteligentes
+
+Durante o preenchimento dos campos, o sistema fornece sugestões automáticas para:
+
+* Medicamentos
+* Laboratórios
+* Responsáveis
+
+Essas sugestões são baseadas nos registros já existentes, tornando o cadastro muito mais rápido.
+
+---
+
+### 🧬 Medicamentos OL
+
+O sistema possui suporte para medicamentos de Operador Logístico (OL).
+
+Ao marcar essa opção, a lista de laboratórios é filtrada automaticamente para exibir apenas os laboratórios configurados para OL, facilitando o processo de cadastro.
+
+---
+
+### ⚠️ Detecção de medicamentos duplicados
+
+Quando um medicamento já foi registrado anteriormente, o sistema apresenta um histórico contendo:
+
+* Última anotação
+* Último pedido
+* Última chegada
+* Quantidade registrada
+* Status atual
+
+Isso evita registros desnecessários e melhora o acompanhamento dos pedidos.
+
+---
+
+### 📊 Dashboard
+
+O sistema possui um painel com indicadores para acompanhamento das solicitações, permitindo visualizar rapidamente a situação dos medicamentos cadastrados.
+
+---
+
+### 🗂️ Organização por categorias
+
+Os medicamentos podem ser classificados em:
+
+* 💊 Genérico / Similar
+* 💊 Controlado
+* 💊 Antibiótico
+* 🚼 Fralda
+* 💅 Cosmético
+* 💊 Ético
+
+---
+
+### ✏️ Gerenciamento completo
+
+O sistema permite:
+
+* Criar registros
+* Editar informações
+* Atualizar status
+* Excluir pedidos
+* Pesquisar medicamentos
+* Filtrar informações
+
+---
+
+## 🎯 Objetivo
+
+O objetivo deste projeto é facilitar o controle interno de medicamentos em falta dentro de farmácias, proporcionando maior organização, redução de retrabalho e melhor acompanhamento do processo de reposição de estoque.
+
+---
+
+## 📸 Interface
+
+O sistema possui uma interface moderna, responsiva e intuitiva, desenvolvida para tornar o registro e o acompanhamento dos medicamentos rápidos e simples para qualquer colaborador da farmácia.
+
+---
+
+## 📌 Melhorias Futuras
+
+* Controle de usuários e permissões
+* Histórico completo de alterações
+* Relatórios em PDF
+* Exportação para Excel
+* Notificações de pedidos pendentes
+* Dashboard com gráficos
+* Controle de distribuidores
+* Registro de movimentações
 
 ---
 
 ## 👨‍💻 Desenvolvedor
 
-Desenvolvido por **Davi Hudson** 🚀
+Desenvolvido por **Davi Hudson Frazao** como projeto de estudos e aperfeiçoamento em desenvolvimento Full Stack, aplicando conceitos de React, Supabase, banco de dados, gerenciamento de estado e construção de interfaces modernas.
