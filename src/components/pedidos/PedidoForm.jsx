@@ -12,6 +12,14 @@ import { Save, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { buildObservacoesWithEan, findPedidoByEan } from './pedidoUtils';
 
+const LABORATORIOS_OL = [
+  "ACHE",
+  "BIOLAB",
+  "EUROFARMA",
+  "APSEN",
+  "SUPERA",
+];
+
 export default function PedidoForm({ pedido, onSubmit, onCancel, isSubmitting }) {
   const [showMedicineSuggestions, setShowMedicineSuggestions] = useState(false);
   const [showLaboratorySuggestions, setShowLaboratorySuggestions] = useState(false);
@@ -153,18 +161,21 @@ export default function PedidoForm({ pedido, onSubmit, onCancel, isSubmitting })
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2 relative">
               <Label htmlFor="medicamento">Medicamento *</Label>
-              <Input
-                id="medicamento"
-                placeholder="Nome do medicamento"
-                value={form.medicamento}
-                onChange={(e) => {
-                  setForm({ ...form, medicamento: e.target.value });
-                  setShowMedicineSuggestions(true);
-                }}
-                onFocus={() => setShowMedicineSuggestions(true)}
-                onBlur={() => setTimeout(() => setShowMedicineSuggestions(false), 150)}
-                required
-              />
+                <Input
+                  id="medicamento"
+                  placeholder="Nome do medicamento"
+                  value={form.medicamento}
+                  onChange={(e) => {
+                    setForm({
+                      ...form,
+                      medicamento: e.target.value.toUpperCase(),
+                    });
+                    setShowMedicineSuggestions(true);
+                  }}
+                  onFocus={() => setShowMedicineSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowMedicineSuggestions(false), 150)}
+                  required
+                />
               {showMedicineSuggestions && medicamentosFiltrados.length > 0 && (
                 <div className="absolute z-40 top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
                   {medicamentosFiltrados.map((medicamento) => (
@@ -220,7 +231,7 @@ export default function PedidoForm({ pedido, onSubmit, onCancel, isSubmitting })
                 placeholder="Selecione ou escreva o laboratório"
                 value={form.laboratorio}
                 onChange={(e) => {
-                  setForm({ ...form, laboratorio: e.target.value });
+                  setForm({ ...form, laboratorio: e.target.value.toUpperCase() });
                   setShowLaboratorySuggestions(true);
                 }}
                 onFocus={() => setShowLaboratorySuggestions(true)}
@@ -252,7 +263,7 @@ export default function PedidoForm({ pedido, onSubmit, onCancel, isSubmitting })
                 placeholder="Nome do funcionário"
                 value={form.responsavel}
                 onChange={(e) => {
-                  setForm({ ...form, responsavel: e.target.value });
+                  setForm({ ...form, responsavel: e.target.value.toUpperCase() });
                   setShowResponsibleSuggestions(true);
                 }}
                 onFocus={() => setShowResponsibleSuggestions(true)}

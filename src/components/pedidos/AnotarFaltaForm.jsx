@@ -331,7 +331,7 @@ export default function AnotarFaltaForm({ onSubmit, onCancel, isSubmitting }) {
                 onChange={(e) => {
                   const categoria = e.target.value;
 
-                  setForm({ ...form, categoria,laboratorio: categoria === "etico" ? "" : form.laboratorio, });
+                  setForm({ ...form, categoria: e.target.value, });
                 }}
                 className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
                 required

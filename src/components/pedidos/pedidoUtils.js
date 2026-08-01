@@ -1,5 +1,24 @@
+const OL_LABORATORIOS = ['ache', 'biolab', 'eurofarma', 'apsen', 'supera'];
+
+function normalizeText(value = '') {
+  return String(value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
 export function normalizeEan(value = '') {
   return String(value || '').trim().replace(/\D/g, '');
+}
+
+export function isPedidoOl(pedido = {}) {
+  if (pedido?.ol === true || pedido?.ol === 1 || pedido?.ol === 'true') {
+    return true;
+  }
+
+  const laboratorio = normalizeText(pedido?.laboratorio);
+  return OL_LABORATORIOS.some((nome) => laboratorio.includes(nome));
 }
 
 export function extractEanValue(pedido = {}) {

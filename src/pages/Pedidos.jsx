@@ -112,9 +112,19 @@ export default function Pedidos() {
   };
 
   const handleUpdate = (formData) => {
+    const data = { ...formData };
+
+    if (data.status !== "pedido_realizado") {
+      data.data_pedido = null;
+    }
+
+    if (data.status !== "pedido_chegou") {
+      data.data_chegada = null;
+    }
+
     updateMutation.mutate({
       id: editingPedido.id,
-      data: formData,
+      data,
     });
   };
 
@@ -308,35 +318,6 @@ export default function Pedidos() {
               onUpdateQuantity={handleUpdateQuantity}
             />
           ))}
-        </div>
-      )}
-
-      {statusFilter === 'todos' && pedidosChegados.length > 0 && (
-        <div className="space-y-3 rounded-2xl border border-dashed border-border/70 bg-slate-50/60 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-semibold text-foreground">Pedidos chegados</h2>
-              <p className="text-xs text-muted-foreground">Mantidos no histórico para consulta e busca futura.</p>
-            </div>
-            <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700">
-              {pedidosChegados.length}
-            </span>
-          </div>
-
-          <div className="space-y-3">
-            {pedidosChegados.map((pedido, i) => (
-              <PedidoCard
-                key={pedido.id}
-                pedido={pedido}
-                index={i}
-                onMarkDone={handleMarkDone}
-                onMarkArrived={handleMarkArrived}
-                onEdit={setEditingPedido}
-                onDelete={setDeletingPedido}
-                onUpdateQuantity={handleUpdateQuantity}
-              />
-            ))}
-          </div>
         </div>
       )}
 

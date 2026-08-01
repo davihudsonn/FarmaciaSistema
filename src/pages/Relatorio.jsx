@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import * as XLSX from "xlsx";
 import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -145,43 +146,48 @@ export default function Relatorio() {
     return Array.from(map.entries()).map(([date, quantidade]) => ({ date, quantidade }));
   }, [periodFilteredActive, period]);
 
-  const exportToExcel = () => {
-    const rows = (periodFiltered || []).map((pedido) => ({
-      medicamento: pedido.medicamento || '-',
-      categoria: pedido.categoria || '-',
-      laboratorio: pedido.laboratorio || '-',
-      responsavel: pedido.responsavel || '-',
-      status: pedido.status || '-',
-      quantidade: pedido.quantidade || 0,
-      observacoes: pedido.observacoes || '-',
-      data_anotacao: formatDate(pedido.data_anotacao),
-      data_pedido: formatDate(pedido.data_pedido),
-      status_excluido: pedido.deleted_at ? 'Excluído' : 'Ativo',
-    }));
+const exportToExcel = () => {
+  const rows = (periodFiltered || []).map((pedido) => ({
+    Medicamento: pedido.medicamento || "-",
+    Categoria: pedido.categoria || "-",
+    Laboratório: pedido.laboratorio || "-",
+    Responsável: pedido.responsavel || "-",
+    Status: pedido.status || "-",
+    Quantidade: pedido.quantidade || 0,
+    Observações: pedido.observacoes || "-",
+    "Data da Anotação": formatDate(pedido.data_anotacao),
+    "Data do Pedido": formatDate(pedido.data_pedido),
+    Registro: pedido.deleted_at ? "Excluído" : "Ativo",
+  }));
 
-    const headers = Object.keys(rows[0] || {
-      medicamento: 'Medicamento',
-      categoria: 'Categoria',
-      laboratorio: 'Laboratório',
-      responsavel: 'Responsável',
-      status: 'Status',
-      quantidade: 'Quantidade',
-      observacoes: 'Observações',
-      data_anotacao: 'Data de anotação',
-      data_pedido: 'Data do pedido',
-      status_excluido: 'Status do registro',
-    });
+  const worksheet = XLSX.utils.json_to_sheet(rows);
 
-    const csvContent = [headers.join(';'), ...rows.map((row) => headers.map((header) => `"${String(row[header] ?? '').replace(/"/g, '""')}"`).join(';'))].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `relatorio-pedidos-${new Date().toISOString().slice(0, 10)}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
+  worksheet["!autofilter"] = {
+    ref: worksheet["!ref"],
   };
+
+  worksheet["!cols"] = [
+    { wch: 35 },
+    { wch: 20 },
+    { wch: 25 },
+    { wch: 20 },
+    { wch: 20 },
+    { wch: 12 },
+    { wch: 50 },
+    { wch: 22 },
+    { wch: 22 },
+    { wch: 15 },
+  ];
+
+  const workbook = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Relatório");
+
+  XLSX.writeFile(
+    workbook,
+    `relatorio-pedidos-${new Date().toISOString().slice(0, 10)}.xlsx`
+  );
+};
 
   if (isLoading) return <div className="space-y-4">{[...Array(6)].map((_, i) => (<Skeleton key={i} className="h-32 rounded-xl"/>))}</div>;
 

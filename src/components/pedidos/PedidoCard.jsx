@@ -20,7 +20,7 @@ import StatusBadge from './StatusBadge';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { motion } from 'framer-motion';
-import { extractEanValue } from './pedidoUtils';
+import { extractEanValue, isPedidoOl } from './pedidoUtils';
 
 const categoriaStyles = {
   generico: 'bg-blue-100 text-blue-700 border border-blue-300 shadow-sm',
@@ -52,6 +52,7 @@ export default function PedidoCard({
   };
 
   const eanValue = extractEanValue(pedido);
+  const isOL = isPedidoOl(pedido);
 
   useEffect(() => {
     setDraftQuantity(String(pedido.quantidade ?? ''));
@@ -99,7 +100,24 @@ export default function PedidoCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
     >
-      <Card className="border border-border/70 bg-white/95 shadow-sm hover:shadow-lg transition-all duration-200 group rounded-2xl">
+        <Card
+          className={`
+            bg-white/95
+            shadow-sm
+            hover:shadow-lg
+            transition-all
+            duration-200
+            group
+            rounded-2xl
+            border
+
+            ${
+              isOL
+                ? "border-violet-400 border-l-[6px] shadow-violet-200/50"
+                : "border-border/70"
+            }
+          `}
+        >
         <CardContent className="p-4 md:p-5">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             
@@ -111,7 +129,14 @@ export default function PedidoCard({
                 <h3 className="font-semibold text-foreground truncate text-base leading-tight">
                   {pedido.medicamento}
                 </h3>
+
                 <StatusBadge status={pedido.status} />
+
+                {isOL && (
+                  <span className="inline-flex items-center rounded-full bg-violet-100 px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-violet-700">
+                    OL
+                  </span>
+                )}
               </div>
 
               {eanValue && (
