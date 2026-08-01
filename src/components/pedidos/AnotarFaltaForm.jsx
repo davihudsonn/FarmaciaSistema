@@ -212,7 +212,7 @@ export default function AnotarFaltaForm({ onSubmit, onCancel, isSubmitting }) {
         <CardTitle className="text-lg">Anotar Falta</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
                       <div className="space-y-2">
               <Label htmlFor="ean">EAN / Código de barras</Label>
               <Input
