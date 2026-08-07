@@ -1,10 +1,11 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Package, Plus, Pill } from 'lucide-react';
+import { Package, Plus, Pill, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
+import { useAuth } from '@/lib/AuthContext';
 
 const navItems = [
   { path: '/', label: 'Pedidos', icon: Package },
@@ -33,7 +34,7 @@ function NavLink({ item, onClick }) {
   );
 }
 
-function Sidebar({ onNavClick }) {
+function Sidebar({ onNavClick, signOut }) {
   return (
     <div className="flex flex-col h-full">
       <div className="p-6 pb-4">
@@ -54,6 +55,17 @@ function Sidebar({ onNavClick }) {
         ))}
       </nav>
 
+      <div className="px-4 py-4 mt-4 border-t border-border">
+        <Button
+          variant="outline"
+          className="w-full justify-center"
+          onClick={signOut}
+        >
+          <LogOut className="h-4 w-4" />
+          Sair
+        </Button>
+      </div>
+
       <div className="p-4 mx-4 mb-4 rounded-xl bg-primary/5 border border-primary/10">
         <p className="text-xs text-muted-foreground leading-relaxed">
           Sistema de controle de pedidos de medicamentos
@@ -65,12 +77,13 @@ function Sidebar({ onNavClick }) {
 
 export default function AppLayout() {
   const [sheetOpen, setSheetOpen] = useState(false);
+  const { signOut } = useAuth();
 
   return (
     <div className="min-h-screen flex bg-background">
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex w-64 border-r border-border bg-card flex-col fixed inset-y-0 left-0 z-30">
-        <Sidebar />
+        <Sidebar signOut={signOut} />
       </aside>
 
       {/* Mobile header */}
@@ -82,7 +95,7 @@ export default function AppLayout() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">
-            <Sidebar onNavClick={() => setSheetOpen(false)} />
+            <Sidebar onNavClick={() => setSheetOpen(false)} signOut={signOut} />
           </SheetContent>
         </Sheet>
         <div className="flex items-center gap-2">

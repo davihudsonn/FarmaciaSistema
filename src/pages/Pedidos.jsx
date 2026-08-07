@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import PedidoCard from '@/components/pedidos/PedidoCard';
 import SearchAndFilters from '@/components/pedidos/SearchAndFilters';
 import PedidoForm from '@/components/pedidos/PedidoForm';
+import { isPedidoOl } from '@/components/pedidos/pedidoUtils';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -206,7 +207,8 @@ export default function Pedidos() {
     categoryFilter === 'todos' || p.categoria === categoryFilter;
 
   const matchLaboratory =
-    laboratoryFilter === 'todos' || p.laboratorio === laboratoryFilter;
+    laboratoryFilter === 'todos' ||
+    (laboratoryFilter === 'ol' ? isPedidoOl(p) : p.laboratorio === laboratoryFilter);
 
   return (
     matchSearch &&

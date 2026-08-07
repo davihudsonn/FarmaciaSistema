@@ -91,6 +91,7 @@ export default function SearchAndFilters({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos os laboratórios</SelectItem>
+            <SelectItem value="ol">Somente OL</SelectItem>
             {laboratoryOptions.map((laboratory) => (
               <SelectItem key={laboratory} value={laboratory}>
                 {laboratory}
